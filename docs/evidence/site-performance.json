@@ -1,0 +1,93 @@
+{
+  "provenance": "legacy_direct_mcp_observation",
+  "scope": "single fixed-window site diagnosis; each query executed once",
+  "metric": "CoreCCU",
+  "compute_type": "NRDB Queries",
+  "rows": [
+    {
+      "case": "browser-lcp",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 36,
+      "recorded_core_ccu": "3.304e-09"
+    },
+    {
+      "case": "browser-fcp",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 36,
+      "recorded_core_ccu": "3.304e-09"
+    },
+    {
+      "case": "browser-load",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 36,
+      "recorded_core_ccu": "3.304e-09"
+    },
+    {
+      "case": "api-latency",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 63,
+      "recorded_core_ccu": "9.3243024e-05"
+    },
+    {
+      "case": "api-throughput",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 63,
+      "recorded_core_ccu": "9.3243024e-05"
+    },
+    {
+      "case": "api-errors",
+      "phase": "before",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 63,
+      "recorded_core_ccu": "9.3243024e-05"
+    },
+    {
+      "case": "browser-combined",
+      "phase": "after",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 36,
+      "recorded_core_ccu": "3.304e-09"
+    },
+    {
+      "case": "api-combined",
+      "phase": "after",
+      "successful_executions": 1,
+      "usage_records": 1,
+      "inspected_events": 63,
+      "recorded_core_ccu": "9.3243024e-05"
+    }
+  ],
+  "totals": {
+    "before": {
+      "executions": 6,
+      "inspected_events": 297,
+      "recorded_core_ccu": "0.000279738984"
+    },
+    "after": {
+      "executions": 2,
+      "inspected_events": 99,
+      "recorded_core_ccu": "0.000093246328"
+    }
+  },
+  "observation": {
+    "results_and_sample_counts_equal": true,
+    "sample_counts": {
+      "lcp": 1,
+      "fcp": 2,
+      "window_load": 2
+    }
+  },
+  "validation_query_count": 12
+}

@@ -1,106 +1,78 @@
 # New Relic MCP Skills
 
-New Relic MCPでの調査に使うAgent Skillsです。
+NRQLのquery cost・CCU・実行計画を見直し、必要な答えを保てる改善案を返すAgent Skillです。
 
 ## newrelic-query-cost
 
-[スキル本体](skills/newrelic-query-cost/SKILL.md)は、NRQL・NerdGraphのクエリや実行計画をコスト効率の観点で評価し、意味を保った改善案を返します。
+- 対象・期間・検索条件・カーディナリティ・反復・応答量を評価
+- 判定 → 理由 → 改善案 → 検証状況の順で回答
+- 静的レビューに対応。実行時はハーネスに公開された登録済みMCPツールのみ使用
+- NerdGraphはNRQLの実行経路として扱い、汎用GraphQL最適化や設定変更は対象外
 
-- 対象範囲、時間範囲、反復回数、FACET・時系列の粒度、応答量を評価
-- 静的評価と実測を区別し、未確認のCCU・料金・削減率を作らない
-- MCPでの実行も依頼された場合は、必要な読み取りだけで検証
-- [New Relic公式ドキュメント](skills/newrelic-query-cost/references/official-docs.md)に基づく判断基準を使用
+[スキル本体](skills/newrelic-query-cost/SKILL.md)に判断手順、参照ファイルにクエリ例と運用ノウハウをまとめています。
 
-参照元はNew Relicの公開公式ドキュメントです。クエリの範囲・反復・返却量を減らすノウハウと、効果を正しく検証する手順をまとめています。
+## 検証例
 
-## 実測効果
-
-サイト性能の初期診断で、同じ対象・固定期間の取得結果を維持して比較しました。
-
-- NRQL実行数：**6本 → 2本（66.7%減）**
-- 検査イベント数：**297件 → 99件（66.7%減）**
-- 記録Core CCU：**0.000279739 → 0.000093246（66.7%減）**
-- 取得結果・サンプル数：**すべて一致**
-
-各クエリ1回の比較。本処理のみで、探索・検証コストと外部LLM料金は含みません。詳細は[検証記録](tests/acceptance.md)を参照してください。
+あるサイト性能診断で、別々に取得していた6クエリを2クエリへ統合し、結果とサンプル数を維持して重複した処理を減らしました。この診断パターン・各1回の比較に限る観測です。数値と条件は[検証記録](docs/validation.md)に掲載しています。
 
 ## 導入
 
-任意の場所にcloneし、使用するエージェントが読むスキルディレクトリへ `skills/newrelic-query-cost` をコピーまたはリンクしてください。シンボリックリンクはcloneを削除・移動すると使えなくなります。
-
-Codexのローカルスキル配置例（既存の同名フォルダがあれば上書きせず確認）：
-
 ```sh
-git clone https://github.com/newrelickk/newrelic-mcp-skills.git
-mkdir -p ~/.codex/skills
-ln -s "$(pwd)/newrelic-mcp-skills/skills/newrelic-query-cost" ~/.codex/skills/newrelic-query-cost
+git clone https://github.com/seamoooo/newrelic-mcp-skills.git
+cd newrelic-mcp-skills
 ```
 
-新しいセッションで、次のように依頼できます。
+使用するエージェントのスキルディレクトリへ一式をコピーします。既存の同名スキルがある場合は内容を確認してから更新してください。以下の`-i`は既存ファイルの上書き時に確認します。
+
+### Codex
+
+```sh
+mkdir -p ~/.codex/skills
+cp -R -i skills/newrelic-query-cost ~/.codex/skills/
+```
+
+新しいセッションで`$newrelic-query-cost`を指定します。`agents/openai.yaml`はCodex用の表示名・説明・既定プロンプトを持つメタデータです。
+
+### Claude Code
+
+```sh
+mkdir -p ~/.claude/skills
+cp -R -i skills/newrelic-query-cost ~/.claude/skills/
+```
+
+`/newrelic-query-cost`で呼び出します。
+
+### GitHub Copilot
+
+Copilot CLIでは`~/.copilot/skills/`、プロジェクトで共有する場合は対象プロジェクトの`.github/skills/`へ`newrelic-query-cost`フォルダ一式をコピーします。CLIでは`/skills reload`後に`/newrelic-query-cost`、Chatではスキル名を指定します。
+
+## 依頼例
 
 ```text
-$newrelic-query-cost このNRQLのコスト効率をレビューして。実行は不要です。
+newrelic-query-costで次のNRQLをレビューして。実行は不要です。
 FROM Log SELECT * SINCE 7 days ago LIMIT MAX
 目的はcheckoutの直近30分のエラーログ確認です。
 ```
 
 ```text
-$newrelic-query-cost 対象アカウントのcheckoutサービスについて、直近1時間の
-エラー増加をNew Relic MCPで調査して。実行前にクエリ計画の効率も判断して。
+Review and optimize the NRQL query cost for this MCP investigation.
+Preserve the requested time range and explain how you will verify equivalent results.
 ```
 
-レビューだけならMCP接続は不要です。実行にはNew Relic MCPの接続と対象アカウントへの権限が必要です。特定のMCPツール名には依存せず、利用環境のツール仕様を確認します。請求の確定や監視設定の自動変更は行いません。
+レビューだけならMCP接続は不要です。実行には、ハーネス側のNew Relic MCP接続・公開済みツール・対象アカウントへの権限が必要です。ツールがない場合は静的評価を返し、ユーザーへ接続を案内します。
 
-## Claude Code
+## 検証
 
-上記でcloneした `newrelic-mcp-skills` ディレクトリへ移動して実行します。既存の同名スキルがある場合は上書きせず確認してください。
+[手動レビューと過去の観測](docs/validation.md)と、オフライン検査を分けています。
 
 ```sh
-mkdir -p ~/.claude/skills
-ln -s "$(pwd)/skills/newrelic-query-cost" ~/.claude/skills/newrelic-query-cost
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-dev.txt
+.venv/bin/python scripts/validate.py
 ```
 
-Claude Codeを起動し、次のコマンドで呼び出します。
+オフライン検査はメタデータ・内部リンク・数値台帳の集計を確認します。MCP呼び出しや資格情報の読み取りは行いません。
 
-```text
-/newrelic-query-cost このNRQLのコスト効率をレビューして。実行は不要です。
-```
+## ライセンス
 
-配置と呼び出し方は[Claude Code公式ドキュメント](https://code.claude.com/docs/en/skills)に基づきます。
-
-## GitHub Copilot CLI
-
-cloneした `newrelic-mcp-skills` ディレクトリ内で実行します。
-
-```sh
-mkdir -p ~/.copilot/skills
-ln -s "$(pwd)/skills/newrelic-query-cost" ~/.copilot/skills/newrelic-query-cost
-```
-
-Copilot CLIのセッション内で読み込みを更新し、呼び出します。
-
-```text
-/skills reload
-/skills list
-/newrelic-query-cost このNRQLのコスト効率をレビューして。実行は不要です。
-```
-
-配置とコマンドは[GitHub Copilot CLI公式ドキュメント](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)に基づきます。
-
-## GitHub Copilotのプロジェクト共有
-
-VS Codeやクラウドエージェント等でプロジェクトのスキルとして使う場合は、対象プロジェクトの `.github/skills/` へスキル一式をコピーします。以下は、このスキルリポジトリのディレクトリ内から実行する例です。コピー先を実際のプロジェクトへ変更してください。
-
-```sh
-project_dir=/absolute/path/to/your-project
-mkdir -p "$project_dir/.github/skills"
-cp -R -n skills/newrelic-query-cost "$project_dir/.github/skills/"
-```
-
-共有する場合は、対象プロジェクトで追加ファイルを確認してコミットします。
-
-Copilot Chatで「newrelic-query-costスキルを使って、このNRQLのコスト効率を評価して」と依頼します。利用環境のAgent Skills対応が必要です。詳細は[GitHubのAgent Skillsドキュメント](https://docs.github.com/en/copilot/how-tos/copilot-on-github/customize-copilot/customize-cloud-agent/add-skills)を参照してください。
-
-## 検証範囲
-
-構造・参照検証、静的レビューとMCP実利用検証は[検証記録](tests/acceptance.md)を参照してください。効果は検証条件によって異なります。
+[MIT License](LICENSE)
