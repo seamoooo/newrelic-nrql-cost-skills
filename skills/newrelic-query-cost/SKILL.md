@@ -3,7 +3,7 @@ name: newrelic-query-cost
 description: Review and optimize NRQL query cost (CCU) and New Relic MCP execution plans. NRQLのコスト効率・範囲・反復・結果同等性を評価する。静的レビューにも使う。一般的なクラウド料金分析、汎用GraphQL最適化、監視設定変更は対象外。
 ---
 
-# New Relic Query Cost
+# New Relic NRQL Cost Optimization
 
 必要な答えを維持しながら、NRQLの対象範囲・処理・実行回数・応答量を見直す。ユーザーの言語に合わせて答える。料金やCCUは、対応する計測値と契約条件から評価する。
 

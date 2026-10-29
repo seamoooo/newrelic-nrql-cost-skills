@@ -1,4 +1,4 @@
 interface:
-  display_name: "New Relic Query Cost"
-  short_description: "New Relic MCPのクエリ効率を評価し、意味を保った改善案を示す"
-  default_prompt: "$newrelic-query-cost を使い、このNew Relic MCPのクエリ計画のコスト効率を評価して改善してください。"
+  display_name: "New Relic NRQL Cost Optimization"
+  short_description: "NRQLの実行コストを評価し、必要な結果を保った削減案を提示する"
+  default_prompt: "$newrelic-query-cost を使い、このNRQLの実行コストを評価し、必要な結果を保った削減案を示してください。"

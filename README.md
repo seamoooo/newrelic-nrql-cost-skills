@@ -1,6 +1,6 @@
-# New Relic MCP Skills
+# New Relic NRQL Cost Optimization Skills
 
-NRQLのquery cost・CCU・実行計画を見直し、必要な答えを保てる改善案を返すAgent Skillです。
+New RelicのNRQL実行コストを下げるためのAgent Skillsです。必要な結果を保ちながら、クエリの処理量と実行回数を見直します。
 
 ## newrelic-query-cost
 
@@ -18,8 +18,8 @@ NRQLのquery cost・CCU・実行計画を見直し、必要な答えを保てる
 ## 導入
 
 ```sh
-git clone https://github.com/seamoooo/newrelic-mcp-skills.git
-cd newrelic-mcp-skills
+git clone https://github.com/seamoooo/newrelic-nrql-cost-skills.git
+cd newrelic-nrql-cost-skills
 ```
 
 使用するエージェントのスキルディレクトリへ一式をコピーします。既存の同名スキルがある場合は内容を確認してから更新してください。以下の`-i`は既存ファイルの上書き時に確認します。
