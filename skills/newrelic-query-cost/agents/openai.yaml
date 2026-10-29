@@ -1,0 +1,4 @@
+interface:
+  display_name: "New Relic Query Cost"
+  short_description: "New Relic MCPのクエリ効率を評価し、意味を保った改善案を示す"
+  default_prompt: "$newrelic-query-cost を使い、このNew Relic MCPのクエリ計画のコスト効率を評価して改善してください。"
