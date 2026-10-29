@@ -11,7 +11,7 @@ New Relic MCPのクエリを、得たい答えに対して必要な負荷かと�
 
 提示されたクエリまたは実行予定から、調査目的、対象アカウント・サービス、期間、用途（単発調査／繰り返し実行／アラート）を把握する。既知の情報を再質問しない。クエリだけでも静的評価は進められるが、不明な対象や実行頻度を推測で補わない。
 
-判断基準の根拠は [references/official-docs.md](references/official-docs.md) の公開公式ドキュメントで確認する。個別の改善例が必要なら [references/query-patterns.md](references/query-patterns.md)、実測が必要なら [references/measurement.md](references/measurement.md) を読む。反復調査の優先順位付け、APMの定期集計、ダッシュボード・アラートの運用を見直すときは [references/operations.md](references/operations.md) を読む。
+判断基準の根拠は [references/official-docs.md](references/official-docs.md) の公開公式ドキュメントで確認する。個別の改善例が必要なら [references/query-patterns.md](references/query-patterns.md)、実測が必要なら [references/measurement.md](references/measurement.md) を読む。サイト性能の初期診断、反復調査の優先順位付け、APMの定期集計、ダッシュボード・アラートの運用を見直すときは [references/operations.md](references/operations.md) を読む。
 
 ## 実行前に評価する
 

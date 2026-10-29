@@ -44,6 +44,36 @@ Transactionイベントを使った集計とメトリクス集計は、同じア
 
 `apm.service.transaction.overview`は処理時間の内訳を見るためのものなので、アプリの応答時間を知る目的で使っていないか確認する。内訳が必要な調査をdurationメトリクスだけへ置き換えない。
 
+## サイト性能の初期診断を2本にまとめる
+
+ブラウザの表示指標とバックエンドの状態を知りたいときは、PageViewTimingの複数集計を1本、APMメトリクスの複数集計を1本にまとめる。異なるイベント型の結果を無理に1本へ混ぜず、それぞれの母集団を維持する。
+
+表示指標はtimingNameの条件を各集計に残し、サンプル数も一緒に取得する。
+
+```sql
+FROM PageViewTiming
+SELECT filter(percentile(largestContentfulPaint, 75),
+         WHERE timingName = 'largestContentfulPaint') AS lcpP75Seconds,
+       filter(count(largestContentfulPaint),
+         WHERE timingName = 'largestContentfulPaint') AS lcpSamples,
+       filter(percentile(firstContentfulPaint, 75),
+         WHERE timingName = 'firstContentfulPaint') AS fcpP75Seconds,
+       filter(count(firstContentfulPaint),
+         WHERE timingName = 'firstContentfulPaint') AS fcpSamples,
+       filter(percentile(windowLoad, 75),
+         WHERE timingName = 'windowLoad') AS loadP75Seconds,
+       filter(count(windowLoad),
+         WHERE timingName = 'windowLoad') AS loadSamples
+WHERE (pageUrl = 'https://example.com/app'
+       OR pageUrl LIKE 'https://example.com/app/%')
+  AND timingName IN ('largestContentfulPaint', 'firstContentfulPaint', 'windowLoad')
+SINCE 1 hour ago
+```
+
+対象URLと期間を置き換え、必要ならBrowserアプリも限定する。APMは上の複数指標のクエリで対象アプリと期間を合わせる。最適化前後の比較では固定期間を使い、各指標のpercentile・単位・サンプル数まで照合する。ページ表示の指標とAPI応答時間は別の値として読む。
+
+少数サンプルのpercentileだけでサイト全体を良好と評価しない。INPがなければ欠測として残し、別の表示指標で代用しない。CLSは記録時点で値が異なるため、異なるtimingNameのスナップショットを混ぜてページ終了時の値と扱わない。
+
 ## ダッシュボードは1回の軽さと実行回数を分けて見る
 
 ウィジェットごとに、対象、実効期間、集計粒度、更新間隔、常時表示の有無を確認する。表示期間によって更新間隔も変わるため、期間を変える案は1回あたりの処理と更新回数の両方で比較する。

@@ -32,6 +32,18 @@ New Relic MCPでの調査に使うAgent Skillsです。
 
 計測値の意味は[公式データ辞書](https://docs.newrelic.com/attribute-dictionary/)と[公式の利用量クエリ](https://docs.newrelic.com/docs/accounts/accounts-billing/new-relic-one-pricing-billing/usage-queries-alerts/)に照らして区別しています。検証内容は[検証記録](tests/acceptance.md)、比較方法は[実測手順](skills/newrelic-query-cost/references/measurement.md)を参照してください。
 
+### サイト性能の初期診断での検証
+
+同じサイト・バックエンド・固定期間について、表示指標3本とAPM指標3本を個別に取得する方法と、ブラウザ1本・APM1本にまとめる方法を比較しました。
+
+| 確認対象 | 維持した情報 | 観測した効果 |
+|---|---|---|
+| ブラウザの表示性能 | LCP・FCP・ページ読み込み時間のp75と各サンプル数 | 3本→1本。各値・サンプル数が一致 |
+| バックエンドの性能 | 平均応答時間・毎分の処理件数・期間内件数・エラー率 | 3本→1本。各値が一致 |
+| 初期診断の本処理全体 | サイト・期間・指標定義を維持 | 6本→2本。合計検査イベント数・合計記録Core CCUはいずれも66.67%減 |
+
+この削減率は、各クエリ1回の小規模な比較での値です。スキーマ確認・比較・効果測定を含む検証全体では12本を実行しており、検証全体のコスト削減率ではありません。MCP利用時の外部LLM料金も含みません。取得できなかったINPやページ終了時のCLSは欠測として残し、正常と判断していません。
+
 ## 繰り返し調査の運用ノウハウ
 
 [運用ノウハウ](skills/newrelic-query-cost/references/operations.md)に、消費の大きい機能から改善対象を選ぶ方法、APMの複数指標をまとめるクエリ、ダッシュボードの更新回数、アラートの集約設定、改善候補の確認方法をまとめています。
