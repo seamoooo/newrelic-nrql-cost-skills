@@ -24,10 +24,6 @@ New Relic MCPでの調査に使うAgent Skillsです。
 
 各クエリ1回の比較。本処理のみで、探索・検証コストと外部LLM料金は含みません。詳細は[検証記録](tests/acceptance.md)を参照してください。
 
-## 繰り返し調査の運用ノウハウ
-
-[運用ノウハウ](skills/newrelic-query-cost/references/operations.md)に、消費の大きい機能から改善対象を選ぶ方法、APMの複数指標をまとめるクエリ、ダッシュボードの更新回数、アラートの集約設定、改善候補の確認方法をまとめています。
-
 ## 導入
 
 任意の場所にcloneし、使用するエージェントが読むスキルディレクトリへ `skills/newrelic-query-cost` をコピーまたはリンクしてください。シンボリックリンクはcloneを削除・移動すると使えなくなります。
