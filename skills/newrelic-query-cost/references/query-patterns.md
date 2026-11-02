@@ -2,6 +2,8 @@
 
 以下は構文案であり、このリポジトリ作成時に実アカウントでは実行していない。例の属性・値は対象アカウントのスキーマに合わせる。構文と関数の意味は[公式NRQL仕様](https://docs.newrelic.com/docs/nrql/nrql-syntax-clauses-functions/)で確認する。
 
+Transaction・appName・error・durationを使う例はAPMエージェント向け。OTelでは[opentelemetry.md](opentelemetry.md)のデータ選択・単位・エラー定義に従う。
+
 ## 特定サービスのエラーログを探す
 
 目的がcheckoutサービスの直近30分のエラー調査なのに、全Logを7日間取得するなら範囲が過大。
@@ -14,7 +16,7 @@ SINCE 30 minutes ago
 LIMIT 50
 ```
 
-service.nameとlevelが存在するか、実値がERRORかを確認する。50件は調査用の抜粋であり、全エラー件数ではない。時間範囲が7日必要な依頼なら30分へ勝手に短縮しない。LIMITは応答量の制御として説明する。
+OTLPログではseverity.text／severity.numberが候補になるため、levelへ固定しない（[OTelログ例](opentelemetry.md)）。service.nameとlevelが存在するか、実値がERRORかを確認する。50件は調査用の抜粋であり、全エラー件数ではない。時間範囲が7日必要な依頼なら30分へ勝手に短縮しない。LIMITは応答量の制御として説明する。
 
 ## filter()の書き換え
 

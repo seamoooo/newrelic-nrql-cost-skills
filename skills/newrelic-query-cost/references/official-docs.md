@@ -1,6 +1,6 @@
 # 公式ドキュメントと判断基準
 
-参照元はNew Relicの公開公式ドキュメントのみ。以下の運用上の提案は、公開仕様を踏まえたクエリ削減のノウハウであり、内部の実行計画・課金計算式を説明するものではない。公式仕様は利用時にも確認する。
+New Relicの仕様はNew Relicの公開公式ドキュメントを参照する。OpenTelemetry自体の処理仕様は同プロジェクトの公式資料も参照する。以下の運用上の提案は、公開仕様を踏まえたクエリ削減のノウハウであり、内部の実行計画・課金計算式を説明するものではない。公式仕様は利用時にも確認する。
 
 | 参照先 | 確認する仕様と実務での使い方 |
 |---|---|
@@ -29,3 +29,16 @@
 - FACETと時系列は必要な分析粒度に合わせる。
 - 大量イベントの反復集計には、同じ答えが得られる既存MetricやE2Mを検討する。
 - 効果は同条件の実測で確認する。スキャン・CCU・料金の固定倍率や内部インデックスの挙動を根拠なく断定しない。
+
+## OpenTelemetryの確認先
+
+OTLP取り込みの仕様と適用条件は[opentelemetry.md](opentelemetry.md)で使う。2026-11-02確認。
+
+- [OTel APM UI](https://docs.newrelic.com/docs/opentelemetry/get-started/apm-monitoring/opentelemetry-apm-ui/)：APMメトリクスの生成元、メトリクスとSpanの優先順位、エラーの定義。
+- [OTel metrics](https://docs.newrelic.com/docs/opentelemetry/best-practices/opentelemetry-best-practices-metrics/)：Metricへの変換、単位、Histogramとtemporality。
+- [OTel traces](https://docs.newrelic.com/docs/opentelemetry/best-practices/opentelemetry-best-practices-traces/)：Spanの属性、所要時間とIDのマッピング。
+- [OTel logs](https://docs.newrelic.com/docs/opentelemetry/best-practices/opentelemetry-best-practices-logs/)：Logのseverity属性、サービス・トレースとの関連。
+
+追加の型・関連ID・取り込み制約と連携別の確認先は[opentelemetry-data-model.md](opentelemetry-data-model.md)。APM生成メトリクスの単位はAPM UIの **APM Service Metrics** の表を参照する。OTel APIとネイティブOTLP送信を区別する際は[APMエージェントのOTel API対応](https://docs.newrelic.com/docs/apm/agents/manage-apm-agents/opentelemetry-api-support/)を確認する。公式資料内でも新旧説明・例・対応表が一致しない場合があるため、矛盾する例をそのまま実行せず、信号別仕様と実データで確認する。
+
+DB360・receiver・Prometheus経由の意味の違いと個別公式資料は[opentelemetry-integrations.md](opentelemetry-integrations.md)。上位N件・スナップショット・計算済みrate/percentileは、通常の実行イベントや分布へ置換しない。
