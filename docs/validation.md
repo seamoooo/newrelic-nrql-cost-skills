@@ -5,8 +5,8 @@
 Python 3.10以上で実行する。依存関係の導入は[README](../README.md#検証)を参照。
 
 ```sh
-python3 scripts/validate.py
-python3 scripts/validate_otel_semantics.py
+.venv/bin/python scripts/validate.py
+.venv/bin/python scripts/validate_otel_semantics.py
 ```
 
 - `validate.py`：スキルのメタデータ・内部リンク・数値台帳の単位と集計を確認する。
@@ -22,6 +22,10 @@ python3 scripts/validate_otel_semantics.py
 - PostgreSQL DB360：query_sampleの行数を実行数にせず、top_queryは加重平均を使う。初回callerのSQLコメントだけで全callsを特定サービスへ帰属させない。
 
 OTelの仕様は公式資料と照合した。実環境のNRQL・CCU、Claude Code／Copilot上の動作は未検証。
+
+公開候補を別ディレクトリへ展開し、新しい仮想環境で依存導入・12テスト・形式と内部リンクの検査が成功した。READMEのコピー手順でもスキル全ファイルの一致を確認した。ファイルのコピー検査は各製品による読込・実行の検証とは別。
+
+整理後のスキルでも独立エージェントの静的タスク4件を確認し、OTLPのSpan/Metric選択、エージェントのOTel API対応、FACETランキングの維持、MCP未接続時の静的評価について主要な条件を満たした。
 
 ## 過去のCCU観測
 
