@@ -1,8 +1,10 @@
 # OTel個別連携の集計を保つ
 
-DB360、receiver、Prometheus、プロキシ等のクエリを改善するときだけ参照する。2026-11-02確認。共通の型・関連IDは[データモデル](opentelemetry-data-model.md)、transactionの取得先は[選択手順](opentelemetry.md)。以下は収集設定の変更手順ではなく、保存されたデータの意味を照合する条件。
+DB360、receiver、Prometheus、プロキシ等で、保存されたデータの集計単位と収集条件を照合する。
 
 ## DB360のLogとAPM Span
+
+query_sample/top_queryはLogの`event.name`で区分する。DB Metric、サーバーLog、APMのDB client Spanは異なる母集団。
 
 - `db.server.query_sample`は収集時点のアクティブなセッション等のスナップショット。同じ実行が複数回現れ得る。`count(*)`をSQL実行数やAPM transaction数と呼ばない。
 - `db.server.top_query`は収集ごとの上位N件の統計。Log行数と実行数を区別する。SQL Serverのexecution_count、PostgreSQLのcalls、MySQLのcount_star等は、該当receiverが出力する区間差分であることを確認して合計する。累積値やスナップショットの属性まで一律に差分・合計しない。
@@ -19,7 +21,9 @@ DB360、receiver、Prometheus、プロキシ等のクエリを改善するとき
 - [APM–DB相関](https://docs.newrelic.com/docs/opentelemetry/db360/capabilities/db-apm/)のSQLコメント注入は対応New Relicエージェントの機能。純粋なOTel計装にもタグがあると仮定しない。プロキシ、DNSとIPの違い等でアドレスによる関連付けが成立しない場合もある。
 - [PostgreSQL](https://docs.newrelic.com/docs/opentelemetry/db360/postgresql/multi-receiver/)の`databases`によるMetric対象と、query_sample/top_queryの`exclude_databases`による対象は異なる。必要なDBはLogの実在する`db.namespace`等でも限定する。複数インスタンスの導入成功表示だけでは、失敗・スキップした対象の収集を保証しない。
 
-## 名前が同じでも集計の意味を照合する
+## receiverとPrometheusの違い
+
+経路ごとの名前・型・ラベルを混ぜない。ドット区切りへの統一や、enumからbooleanへの変換を前提にしない。
 
 | 対象 | 維持する意味 |
 |---|---|
@@ -33,7 +37,7 @@ DB360、receiver、Prometheus、プロキシ等のクエリを改善するとき
 ## 収集・エンティティ・欠測
 
 - [IBM MQ Kubernetes](https://docs.newrelic.com/docs/opentelemetry/integrations/ibm-mq/kubernetes/)はターゲット分担なしの複数replicaやDaemonSetで重複scrapeを起こし得る。クエリ変更前に収集元と分担を確認する。replica数で割る、値だけでdedupする等で同等と断定しない。exporterのpollより短いscrapeで同じ区間統計を反復取得するケースも確認する。
-- IBM MQの`ibmmq_*`・`qmgr`・`queue`は保持し、`targetName`と`clusterName`は`target.name`と`cluster.name`へ変換する。この例外を「全ラベルをドット表記にする」と解釈しない。
+- [IBM MQ](https://docs.newrelic.com/docs/opentelemetry/integrations/ibm-mq/metrics/)の`ibmmq_*`・`qmgr`・`queue`は保持し、`targetName`と`clusterName`は`target.name`と`cluster.name`へ変換する。この例外を「全ラベルをドット表記にする」と解釈しない。
 - [Linkerd](https://docs.newrelic.com/docs/opentelemetry/integrations/linkerd/distributed-tracing/)のproxy SpanとアプリSpan、inbound/outboundのメトリクスは異なる観測地点。各サービスで選んだ処理境界を維持する。全server Spanや全proxyリクエストを足して業務リクエスト総数にしない。同じdeployment名へのservice.name変換で複数clusterが一つのentityへ統合される構成もある。
 - [NGINX tracing](https://docs.newrelic.com/docs/opentelemetry/integrations/nginx/nginx-otel-distributed-tracing/)の同一entityにはendpointとdeployment名の一致が必要。[Elasticsearch](https://docs.newrelic.com/docs/opentelemetry/integrations/elasticsearch/distributed-tracing/)はSpanの`es.cluster.name`とMetricの`elasticsearch.cluster.name`を区別する。メトリクスと関連entityがあっても、アプリのend-to-end traceまで収集済みとは限らない。
 - Redisはhostのaddress/port、Kubernetesのstable instance ID、cluster名という識別方法を区別する。filelog由来のLogには別途identityの付与が必要な構成があり、同じentityでLogが見つからないことだけでログ全体の未収集としない。

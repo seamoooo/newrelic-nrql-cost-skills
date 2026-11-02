@@ -1,6 +1,6 @@
 # 意味を保つクエリ改善
 
-以下は構文案であり、このリポジトリ作成時に実アカウントでは実行していない。例の属性・値は対象アカウントのスキーマに合わせる。構文と関数の意味は[公式NRQL仕様](https://docs.newrelic.com/docs/nrql/nrql-syntax-clauses-functions/)で確認する。
+例は未実行の構文案。属性・値を実スキーマに合わせ、関数の意味は[公式NRQL仕様](https://docs.newrelic.com/docs/nrql/nrql-syntax-clauses-functions/)で確認する。
 
 Transaction・appName・error・durationを使う例はAPMエージェント向け。OTelでは[opentelemetry.md](opentelemetry.md)のデータ選択・単位・エラー定義に従う。
 
@@ -50,13 +50,13 @@ FACETを上位20にする場合は全対象の一覧ではないと伝える。�
 
 ## 既存Metric・E2M
 
-高頻度で同じイベント集計を繰り返す場合の設計候補。置換するメトリクスの意味・集計関数・単位・フィルタを検証してから提案する。
+[イベントからメトリクスへの変換](https://docs.newrelic.com/docs/data-apis/convert-to-metrics/analyze-monitor-data-trends-metrics/)は、高頻度で同じイベント集計を繰り返す場合の設計候補。置換するメトリクスの意味・集計関数・単位・フィルタを検証してから提案する。
 
 E2M未作成なら「このMetricで実行できる」と答えず、作成が必要な代替案とする。userIdやtraceId等をすべてディメンションにして時系列を増やさない。取り込み・保持・追加機能の費用を含めた全体効果は別途検証する。
 
 ## NRQLアラート
 
-アラート条件のクエリへSINCE、UNTIL、TIMESERIES、LIMITを機械的に追加しない。集約・スライド・遅延設定と必要な検出時間を確認する。コスト削減のために重要な信号や監視範囲を黙って削らない。
+[NRQLアラート](https://docs.newrelic.com/docs/alerts/create-alert/create-alert-condition/create-nrql-alert-conditions/)のクエリへSINCE、UNTIL、TIMESERIES、LIMITを機械的に追加しない。集約・スライド・遅延設定と必要な検出時間を確認する。コスト削減のために重要な信号や監視範囲を黙って削らない。
 
 ## LIMIT MAXとFACETの取りこぼし
 
@@ -73,7 +73,7 @@ FROM Transaction SELECT average(duration) FACET appName SINCE 1 hour ago LIMIT 1
 
 ## 固定期間による比較
 
-相対時間の`SINCE 1 hour ago`を順番に実行すると母集団が動く。比較用の例は次のようにタイムゾーン付きで固定し、実際の依頼期間へ置き換える。
+[時間範囲](https://docs.newrelic.com/docs/nrql/using-nrql/query-time-range/)が相対指定の`SINCE 1 hour ago`では、順番に実行すると母集団が動く。比較用の例は次のようにタイムゾーン付きで固定し、実際の依頼期間へ置き換える。
 
 ```sql
 FROM Transaction

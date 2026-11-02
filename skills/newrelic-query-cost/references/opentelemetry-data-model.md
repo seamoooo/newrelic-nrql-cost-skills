@@ -1,6 +1,6 @@
 # OTelのデータモデルと調査時の落とし穴
 
-ネイティブOTLP取り込みの補足。通常の選択手順は[opentelemetry.md](opentelemetry.md)。以下は2026-11-02時点の公式資料に基づく。属性・型・対応機能は実データと利用時の仕様で照合する。
+ネイティブOTLP取り込みの型・関連ID・欠測を扱う。属性・型・対応機能は実データと利用時の仕様で照合する。
 
 ## 例外と非同期の関連をたどる
 
@@ -43,8 +43,6 @@ DB360のスナップショットと実行数、計画・サービス帰属、rec
 |---|---|
 | サービス・ホストの関連 | [Resources](https://docs.newrelic.com/docs/opentelemetry/best-practices/opentelemetry-best-practices-resources/)でentity生成と関連付けを区別。service.nameの存在だけでhost/containerの関連まで保証しない。UIのタグをNRDBイベントの属性と同一視しない |
 | Kubernetes | [インストール確認](https://docs.newrelic.com/docs/kubernetes-pixie/k8s-otel/install/)ではMetric・OtlpInfrastructureEvent・Logが対象。従来のK8sイベント型を仮定せず、cluster/namespace/pod等の実属性で限定 |
-| DBのサンプル・遅いSQL | [PostgreSQLのデータ](https://docs.newrelic.com/docs/opentelemetry/db360/postgresql/hosted/)等ではquery_sample/top_queryはLogのevent.nameで区分。APMのDB client Span、DBサーバーのLog、DB Metricは異なる母集団。機能未有効・権限・DBバージョンによる欠測と、サンプル上限を確認 |
-| receiver／Prometheus連携 | メトリクス名が必ずドット区切りになるとは限らない。[IBM MQ](https://docs.newrelic.com/docs/opentelemetry/integrations/ibm-mq/metrics/)はibmmq_*とqmgr等、[Linkerd](https://docs.newrelic.com/docs/opentelemetry/integrations/linkerd/metrics-reference/)はrequest_total等。receiver、Prometheus経由、旧New Relic連携の名前・型・ラベルを混ぜない。状態値はbooleanでなくenumの場合がある |
 | Collector自身 | [Collector monitoring](https://docs.newrelic.com/docs/opentelemetry/collector-observability/collector-observability/)の内部テレメトリーと業務リクエストを区別。同じservice.nameでAttached Collectorの場合もある。receiver refusedは拒否を示すが上流のretryで回復し得る。queueへのenqueue失敗によるdropと、retryし得る送信失敗を区別する。内部テレメトリー未有効なら値を作らない |
 | ATPのprocess.* | [ATP query](https://docs.newrelic.com/docs/opentelemetry/nrdot/atp/query/)のデータはフィルタ済み。観測プロセス数を全プロセス数とせず、filtering efficiencyをNRQLのCCU削減率と扱わない |
 | Lambda | [欠測調査](https://docs.newrelic.com/docs/serverless-function-monitoring/aws-lambda-monitoring/opentelemetry/lambda-opentelemetry-troubleshooting/)のfaas.name/id/execution等を実スキーマで確認。同じservice.nameに複数関数が集約される場合もあり、必要な関数へ限定。HTTPのserver条件を全invocationへ流用しない |

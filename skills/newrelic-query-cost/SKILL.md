@@ -15,7 +15,7 @@ description: Review and optimize NRQL query cost (CCU) and New Relic MCP executi
 
 収集元がNew Relic APMエージェント、OpenTelemetry（OTel）のOTLP送信、New RelicエージェントのOTel API対応、混在のどれかを既存情報から確認する。APIの名前だけではデータモデルを決めない。不明な場合は共通の静的評価を進め、APM固有のTransaction・appName・errorやメトリクスの存在を前提にしない。OTelでは利用可能なMetric・Span・Logとサービス識別属性を確認し、サンプリングされたSpanを全リクエストと扱わない。混在時は同じサービス名でも収集元・エンティティを区別し、二重計上を避ける。
 
-OTLPで送信されたOTelデータについて「transactionを取得」と言われた場合、個別リクエスト／transaction traceはSpanから取得する。TransactionイベントやTransactionErrorの存在を仮定しない。HTTP/RPCは対象サービスのserver Span、非Web処理は計装に合う処理Spanを確認する。件数・応答時間・エラー率の全体傾向は既存Metricを優先する。詳細は[OTelのtransaction取得](references/opentelemetry.md)を参照する。
+OTLPで送信されたOTelデータについて「transactionを取得」と言われた場合、個別リクエスト／transaction traceはSpanから取得する。TransactionイベントやTransactionErrorの存在を仮定しない。HTTP/RPCは対象サービスのserver Span、非Web処理は計装に合う処理Spanを確認する。件数・応答時間・エラー率の全体傾向は既存Metricを優先する。
 
 必要な内容だけ参照する。
 
@@ -26,7 +26,6 @@ OTLPで送信されたOTelデータについて「transactionを取得」と言�
 - 計測と結果の比較：[measurement.md](references/measurement.md)
 - サイト性能・反復調査の運用：[operations.md](references/operations.md)
 - NerdGraph経由のNRQL実行計画：[nerdgraph.md](references/nerdgraph.md)
-- 仕様の確認先：[official-docs.md](references/official-docs.md)
 
 ## 実行経路を確認する
 

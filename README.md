@@ -14,12 +14,6 @@ New RelicのNRQL実行コストを下げるためのAgent Skillsです。必要�
 
 [スキル本体](skills/newrelic-query-cost/SKILL.md)に判断手順、参照ファイルにクエリ例と運用ノウハウをまとめています。
 
-OTelは公式資料との照合、合成データ12テスト、独立エージェントによる静的タスク2件で確認しています。OTel実環境でのNRQL実行・CCU削減効果は未検証です。検証範囲は[検証記録](docs/validation.md)を参照してください。
-
-## 検証例
-
-あるサイト性能診断で、別々に取得していた6クエリを2クエリへ統合し、結果とサンプル数を維持して重複した処理を減らしました。この診断パターン・各1回の比較に限る観測です。数値と条件は[検証記録](docs/validation.md)に掲載しています。
-
 ## 導入
 
 ```sh
@@ -36,9 +30,9 @@ mkdir -p ~/.agents/skills
 cp -R -i skills/newrelic-query-cost ~/.agents/skills/
 ```
 
-新しいセッションで`$newrelic-query-cost`を指定します。`agents/openai.yaml`はCodex用の表示名・説明・既定プロンプトを持つメタデータです。
+新しいセッションで`$newrelic-query-cost`を指定します。
 
-保存先・呼び出し方は[公式のスキル説明](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)を参照してください。旧保存先に同名スキルがある場合は、重複して読み込まれないよう導入先を確認してください。
+保存先・呼び出し方は[公式のスキル説明](https://learn.chatgpt.com/docs/build-skills#where-codex-loads-local-skills)を参照してください。同名スキルの重複に注意してください。
 
 ### Claude Code
 
@@ -53,7 +47,7 @@ cp -R -i skills/newrelic-query-cost ~/.claude/skills/
 
 Copilot CLIでは`~/.copilot/skills/`、プロジェクトで共有する場合は対象プロジェクトの`.github/skills/`へ`newrelic-query-cost`フォルダ一式をコピーします。CLIでは`/skills reload`後に`/newrelic-query-cost`、Chatではスキル名を指定します。
 
-導入先は[CLIの公式手順](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)に従ってください。IDEなどの対応範囲は利用バージョンによります。Claude Code／Copilotについては公式手順を照合しましたが、本スキルを使った製品上の動作試験は未実施です。
+導入先・対応範囲は[CLIの公式手順](https://docs.github.com/en/copilot/how-tos/copilot-cli/customize-copilot/add-skills)で確認してください。
 
 ## 依頼例
 
@@ -74,7 +68,7 @@ OTelの場合は収集元も指定できます。例：「OTelで収集したche
 
 ## 検証
 
-Python 3.10以上を使います。[検証の現状と過去の観測](docs/validation.md)、[OTel公式ドキュメントの監査範囲と結果](docs/otel-documentation-audit.md)、[独立タスク2件の再検証](docs/otel-revalidation.md)を記録しています。
+Python 3.10以上を使います。検証範囲は[検証記録](docs/validation.md)を参照してください。
 
 ```sh
 python3 -m venv .venv
@@ -83,7 +77,7 @@ python3 -m venv .venv
 .venv/bin/python scripts/validate_otel_semantics.py
 ```
 
-オフライン検査はメタデータ・内部リンク・数値台帳と、合成データの集計を確認します。NRQLエンジンやエージェントの判断を自動検証するテストではありません。MCP呼び出しや資格情報の読み取りは行いません。
+オフライン検査はメタデータ・内部リンク・数値台帳と合成データの集計を確認します。OTel実環境のNRQL・CCUと、Claude Code／Copilot上の動作は未検証です。
 
 ## ライセンス
 

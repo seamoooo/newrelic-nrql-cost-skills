@@ -1,10 +1,10 @@
 # OpenTelemetry・混在環境でのクエリ選択
 
-以下はNew RelicのOTLP取り込みを対象とする未実行の構文案。公式資料は2026-11-02に確認。Collectorの変換や計装のバージョンにより属性・単位が異なるため、既存スキーマを優先し、実行依頼がある場合のみ登録済みMCPで必要最小限を確認する。
+OTLP送信のデータ選択と未実行のクエリ例。属性・単位はCollectorの変換や計装版により異なるため、実スキーマを優先する。
 
 ## 最初に送信経路を区別する
 
-この文書のSpan・Log・MetricのマッピングはNew RelicへのネイティブOTLP送信が対象。[New RelicエージェントのOTel API対応](https://docs.newrelic.com/docs/apm/agents/manage-apm-agents/opentelemetry-api-support/)は、OTel APIで生成した情報をエージェントが取り込む別構成。OTel APIを使っているだけでTransaction・TransactionErrorを除外したり、duration.ms・trace.idを強制したりしない。エージェントの種類・バージョンと保存後の実スキーマから選ぶ。資格情報の探索や収集設定の変更は行わない。
+この文書のSpan・Log・MetricのマッピングはNew RelicへのネイティブOTLP送信が対象。[New RelicエージェントのOTel API対応](https://docs.newrelic.com/docs/apm/agents/manage-apm-agents/opentelemetry-api-support/)は、OTel APIで生成した情報をエージェントが取り込む別構成。OTel APIを使っているだけでTransaction・TransactionErrorを除外したり、duration.ms・trace.idを強制したりしない。エージェントの種類・バージョンと保存後の実スキーマから選ぶ。
 
 ## 利用可能なデータから選ぶ
 
@@ -22,7 +22,7 @@
 
 ## 「transactionを取得」の読み替え
 
-ネイティブOTLP送信の個別トランザクションやtransaction traceを求める依頼は、`FROM Span`で扱う。OTel APM UIにTransactionsが表示されても、`Transaction`イベントが生成される根拠にはしない。エラー事例も`TransactionError`を前提にせず、対象Spanの`otel.status_code`と必要に応じてSpanEventの例外情報を確認する。例外イベントの存在だけでエラーと判定しない。
+ネイティブOTLP送信の個別トランザクションやtransaction traceを求める依頼は、`FROM Span`で扱う。OTel APM UIにTransactionsが表示されても、`Transaction`イベントが生成される根拠にはしない。エラー事例も`TransactionError`を前提にせず、対象Spanの`otel.status_code`と必要に応じて[SpanEventの例外情報](opentelemetry-data-model.md)を確認する。例外イベントの存在だけでエラーと判定しない。
 
 - HTTP/RPCの受信リクエスト一覧：対象サービスのserver Spanを選ぶ。trace全体のrootだけに限定しない。
 - メッセージ処理・バックグラウンド処理：consumer等のspan.kindに加え、操作・計装属性を確認し、目的の処理境界を選ぶ。すべてのconsumer Spanが1メッセージ／1トランザクションに対応するとは限らない。
@@ -42,8 +42,6 @@ LIMIT 50
 ```
 
 50件は観測リクエストの抜粋。混在や同名サービスがあれば実在するエンティティ・環境条件を加える。見つからなくてもTransactionイベントを名前違いで総当たりせず、対象期間・計装・サンプリングと利用可能なデータを確認する。
-
-[公式OTel APM UIのTransactions／Transaction traces](https://docs.newrelic.com/docs/opentelemetry/get-started/apm-monitoring/opentelemetry-apm-ui/)を根拠に、集計用メトリクスと個別トレース用Spanを区別する。
 
 ## HTTPサーバーメトリクスの集計をまとめる
 
@@ -100,11 +98,3 @@ LIMIT 50
 ```
 
 severity.textの表記は実値に合わせる。levelからの置換は元の検索集合を保てる場合だけ行い、FATAL等を含める目的ならその条件も確認する。ログのサービス属性や関連IDが欠けている可能性を残す。50件は抜粋であり全エラー件数ではない。
-
-## 詳細なデータモデルの確認
-
-例外のSpanEvent、非同期のspan links、Metric型とquantileの制約、ログのCustom Event化、取り込み欠損、Kubernetes/DB/Collector等は[opentelemetry-data-model.md](opentelemetry-data-model.md)を必要時に参照する。HTTPのserver Spanの条件を別の信号や計装へ機械的に流用しない。
-
-## 最適化の検証
-
-同じ固定期間で統合前後の値・単位・バケット・欠測を比較する。SpanからMetricへの変更は、単なるクエリ統合とは分けて母集団の変更を評価する。メトリクスがSpan由来ならサンプリングの影響も確認する。属性のFACETを減らす場合は必要なサービス・ルート・環境別の内訳を残す。CCU計測は[measurement.md](measurement.md)に従い、OTel取り込み量の削減とNRQL実行コストの削減を区別する。
