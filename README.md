@@ -1,31 +1,51 @@
-# New Relic NRQL Cost Skills
+# New Relic APM Agent NRQL Cost Optimization
 
-収集経路ごとにリポジトリとスキルを分割しました。新しく導入する場合は、対象のデータに合うものを選んでください。
+New Relic APMエージェント向けに、必要な結果を保ちながらNRQLの対象・集計・実行回数を見直すAgent Skill。コミュニティ製で、New Relicの公式製品ではない。
 
-| 収集経路 | リポジトリ | スキル名 |
-|---|---|---|
-| New Relic APMエージェント、同エージェントのOTel API対応 | [Agent版](https://github.com/seamoooo/newrelic-agent-nrql-cost-skills) | `newrelic-agent-query-cost` |
-| OpenTelemetry SDK・Collector・NRDOTからのOTLP送信 | [OTel版](https://github.com/seamoooo/newrelic-otel-nrql-cost-skills) | `newrelic-otel-query-cost` |
+スキル名：`newrelic-query-cost`。データ選択は[判断手順](skills/newrelic-query-cost/references/agent.md)を参照。
 
-共通のNRQL最適化・計測・NerdGraph・運用知識は、両リポジトリに同じ内容を保持しています。各スキルは単独で利用でき、混在環境では収集元ごとに選べます。導入手順は各リポジトリのREADMEを参照してください。
+## 対象
 
-このリポジトリは移行用に旧統合版を保持しています。新しいスキルへの移行後は、同じ依頼に旧`newrelic-query-cost`が重複して適用されないよう読込を解除してください。
+New Relic APMエージェントが収集するTransaction・TransactionError・Span・Metric・Log。
 
-コミュニティ製で、New Relicの公式製品ではありません。
+共通のNRQL最適化・計測・NerdGraph・運用知識も一式を保持し、他リポジトリやサブモジュールへの実行時依存はありません。
+
+## 導入
+
+macOS／Linuxの例。既存の同名スキルを確認してからコピーする。
+
+```sh
+git clone https://github.com/seamoooo/newrelic-nrql-cost-skills.git
+cd newrelic-nrql-cost-skills
+mkdir -p ~/.agents/skills
+cp -R -i skills/newrelic-query-cost ~/.agents/skills/
+```
+
+Codexで`$newrelic-query-cost`を指定する。Claude Codeでは`~/.claude/skills/`へコピーして`/newrelic-query-cost`、Copilot CLIでは`~/.copilot/skills/`へコピーし`/skills reload`後に`/newrelic-query-cost`を指定する。
+
+## 依頼例
+
+```text
+newrelic-query-costで次のNRQLをレビューして。実行は不要です。
+目的・対象サービス・必要期間を維持し、改善案と検証条件を示してください。
+```
+
+レビューはMCP接続不要。実行にはハーネスに公開されたNew Relic MCPツールと対象アカウントの権限が必要。資格情報を探索して直接接続する方法は使わない。
 
 ## 検証
 
-旧統合版の検証はPython 3.10以上で実行できます。新しい版の検証は各リポジトリの手順を使ってください。
+Python 3.10以上。
 
 ```sh
 python3 -m venv .venv
 .venv/bin/python -m pip install -r requirements-dev.txt
 .venv/bin/python scripts/validate.py
-.venv/bin/python scripts/validate_otel_semantics.py
+.venv/bin/python scripts/validate_semantics.py
+.venv/bin/python scripts/validate_agent_semantics.py
 ```
 
-実環境のNRQL・CCU、Claude Code／Copilot上の動作は未検証です。
+検証はパッケージ・内部リンク・合成データの集計を対象とする。実環境のNRQL・CCU、Claude Code／Copilot上の動作は未検証。[検証範囲](docs/validation.md)を参照。
 
 ## ライセンス
 
-[MIT License](LICENSE)
+[MIT License](LICENSE)。

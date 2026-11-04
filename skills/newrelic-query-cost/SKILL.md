@@ -1,9 +1,9 @@
 ---
 name: newrelic-query-cost
-description: Review and optimize NRQL query cost (CCU) and New Relic MCP execution plans. APMエージェント／OpenTelemetry双方のNRQLのコスト効率・範囲・反復・結果同等性を評価する。静的レビューにも使う。一般的なクラウド料金分析、汎用GraphQL最適化、監視設定変更は対象外。
+description: Review and optimize NRQL cost for New Relic APM agent data. Transaction・APM Metric・Span・Logの対象と集計を維持する。静的レビューにも使う。一般的なクラウド料金分析、汎用GraphQL最適化、監視設定変更は対象外。
 ---
 
-# New Relic NRQL Cost Optimization
+# New Relic APM Agent NRQL Cost Optimization
 
 必要な答えを維持しながら、NRQLの対象範囲・処理・実行回数・応答量を見直す。ユーザーの言語に合わせて答える。料金やCCUは、対応する計測値と契約条件から評価する。
 
@@ -13,15 +13,11 @@ description: Review and optimize NRQL query cost (CCU) and New Relic MCP executi
 
 例示クエリのイベント型・属性名・値は対象環境では未検証として扱う。`dimension_productCapability`、`service.name`、`level`等は、既存のスキーマ情報または許可された最小限の確認で実名・型・値を照合する。
 
-収集元がNew Relic APMエージェント、OpenTelemetry（OTel）のOTLP送信、New RelicエージェントのOTel API対応、混在のどれかを既存情報から確認する。APIの名前だけではデータモデルを決めない。不明な場合は共通の静的評価を進め、APM固有のTransaction・appName・errorやメトリクスの存在を前提にしない。OTelでは利用可能なMetric・Span・Logとサービス識別属性を確認し、サンプリングされたSpanを全リクエストと扱わない。混在時は同じサービス名でも収集元・エンティティを区別し、二重計上を避ける。
-
-OTLPで送信されたOTelデータについて「transactionを取得」と言われた場合、個別リクエスト／transaction traceはSpanから取得する。TransactionイベントやTransactionErrorの存在を仮定しない。HTTP/RPCは対象サービスのserver Span、非Web処理は計装に合う処理Spanを確認する。件数・応答時間・エラー率の全体傾向は既存Metricを優先する。
+対象はNew Relic APMエージェントのデータ。個別transactionは実在するTransaction、エラー詳細はTransactionError、処理の経路はSpan、全体傾向は適合する既存APM Metricから選ぶ。イベントとMetricの母集団・サンプリングを照合する。
 
 必要な内容だけ参照する。
 
-- OTel・混在環境のデータ選択、単位・エラー定義とクエリ例：[opentelemetry.md](references/opentelemetry.md)
-- OTelの型・関連ID・取り込み欠損・Kubernetes/DB/Collector等の差分：[opentelemetry-data-model.md](references/opentelemetry-data-model.md)
-- DB360の実行数・計画・帰属、receiver別rate/percentile、重複scrape：[opentelemetry-integrations.md](references/opentelemetry-integrations.md)
+- APMのイベント・メトリクス・エラーとクエリ例：[agent.md](references/agent.md)
 - 改善例・検索やカーディナリティ：[query-patterns.md](references/query-patterns.md)
 - 計測と結果の比較：[measurement.md](references/measurement.md)
 - サイト性能・反復調査の運用：[operations.md](references/operations.md)

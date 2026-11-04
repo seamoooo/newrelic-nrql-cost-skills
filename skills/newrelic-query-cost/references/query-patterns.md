@@ -2,7 +2,7 @@
 
 例は未実行の構文案。属性・値を実スキーマに合わせ、関数の意味は[公式NRQL仕様](https://docs.newrelic.com/docs/nrql/nrql-syntax-clauses-functions/)で確認する。
 
-Transaction・appName・error・durationを使う例はAPMエージェント向け。OTelでは[opentelemetry.md](opentelemetry.md)のデータ選択・単位・エラー定義に従う。
+ログ属性は例示。service.name・level・trace.idの実在と値を確認する。severity属性は収集経路に合わせる。
 
 ## 特定サービスのエラーログを探す
 
@@ -16,27 +16,27 @@ SINCE 30 minutes ago
 LIMIT 50
 ```
 
-OTLPログではseverity.text／severity.numberが候補になるため、levelへ固定しない（[OTelログ例](opentelemetry.md)）。service.nameとlevelが存在するか、実値がERRORかを確認する。50件は調査用の抜粋であり、全エラー件数ではない。時間範囲が7日必要な依頼なら30分へ勝手に短縮しない。LIMITは応答量の制御として説明する。
+service.nameとlevelが存在するか、実値がERRORかを確認する。50件は調査用の抜粋であり、全エラー件数ではない。時間範囲が7日必要な依頼なら30分へ勝手に短縮しない。LIMITは応答量の制御として説明する。
 
 ## filter()の書き換え
 
 ```sql
-FROM Transaction
-SELECT filter(count(*), WHERE error IS true), count(*)
-WHERE appName = 'checkout'
+FROM Log
+SELECT filter(count(*), WHERE level = 'ERROR'), count(*)
+WHERE service.name = 'checkout'
 SINCE 1 hour ago
 ```
 
-error条件を外側WHEREへ移すと2つめのcount(*)もエラーだけになり、分母が変わる。この形を非効率という理由だけで書き換えない。単独のfiltered countでも、該当なしの0とnullの差やFACETが消える影響を評価する。
+エラー条件を外側WHEREへ移すと2つめのcount(*)もエラーだけになり、分母が変わる。この形を非効率という理由だけで書き換えない。単独のfiltered countでも、該当なしの0とnullの差やFACETが消える影響を評価する。
 
 ## 反復調査の計画を絞る
 
-たとえば同じ対象・期間で平均時間と件数を別々に実行しているなら、次のような単一クエリが候補になる。
+たとえば同じ対象・期間でtrace種類数と件数を別々に実行しているなら、次のような単一クエリが候補になる。
 
 ```sql
-FROM Transaction
-SELECT average(duration), count(*)
-WHERE appName = 'checkout'
+FROM Log
+SELECT uniqueCount(trace.id), count(*)
+WHERE service.name = 'checkout'
 SINCE 1 hour ago
 ```
 
@@ -62,23 +62,23 @@ E2M未作成なら「このMetricで実行できる」と答えず、作成が�
 
 `FROM Log SELECT * SINCE 1 day ago LIMIT MAX`は全件エクスポートではない。公式仕様の現在の上限は5,000件で、FACETの既定は10件。上限値は利用時に公式仕様で再確認する。件数を知る目的なら同じ母集団の`count(*)`、全件の原文が必要なら取得方法・分割範囲を別途検討する。件数集計は原文取得の代替ではない。
 
-次の2本をまとめる場合、FACETは通常SELECTの最初の集計で選ばれるため、「件数の上位」と「平均時間の上位」は同じサービスとは限らない。
+次の2本をまとめる場合、FACETは通常SELECTの最初の集計で選ばれるため、「件数の上位」と「trace種類数の上位」は同じサービスとは限らない。
 
 ```sql
-FROM Transaction SELECT count(*) FACET appName SINCE 1 hour ago LIMIT 10
-FROM Transaction SELECT average(duration) FACET appName SINCE 1 hour ago LIMIT 10
+FROM Log SELECT count(*) FACET service.name SINCE 1 hour ago LIMIT 10
+FROM Log SELECT uniqueCount(trace.id) FACET service.name SINCE 1 hour ago LIMIT 10
 ```
 
-件数の上位10サービスに平均時間も添える目的なら結合できるが、両方のランキングを残す目的では同等としない。
+件数の上位10サービスにtrace種類数も添える目的なら結合できるが、両方のランキングを残す目的では同等としない。
 
 ## 固定期間による比較
 
 [時間範囲](https://docs.newrelic.com/docs/nrql/using-nrql/query-time-range/)が相対指定の`SINCE 1 hour ago`では、順番に実行すると母集団が動く。比較用の例は次のようにタイムゾーン付きで固定し、実際の依頼期間へ置き換える。
 
 ```sql
-FROM Transaction
-SELECT average(duration), count(*)
-WHERE appName = 'checkout'
+FROM Log
+SELECT uniqueCount(trace.id), count(*)
+WHERE service.name = 'checkout'
 SINCE '2025-01-01T10:00:00+09:00'
 UNTIL '2025-01-01T11:00:00+09:00'
 ```

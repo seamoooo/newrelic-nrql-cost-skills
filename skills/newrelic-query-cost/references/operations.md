@@ -19,33 +19,6 @@ LIMIT 20
 - 機能別の内訳は改善対象を選ぶための値であり、そのまま単一MCP呼び出しの消費量にはしない。Advanced CCUは別枠で集計する。
 - 消費の大きさだけで監視を止めない。利用目的・実行頻度・重複・維持する必要のある信号を確認して改善候補を選ぶ。
 
-## バックエンドの定期集計に既存メトリクスを使う
-
-以下はNew Relic APMエージェントの例。OTel・混在環境では[データ選択とクエリ例](opentelemetry.md)を参照し、生成済みAPMメトリクスまたは元のOTelメトリクスと実属性を選ぶ。OTel由来のAPM durationは元データの単位を引き継ぐため、下のlatencySecondsをそのまま使う前に単位を確認する。
-
-アプリ全体の応答時間・処理量・エラー傾向を定期的に確認するなら、対象アプリに既存のAPMメトリクスがあるか調べる。例のアプリ名と期間は実際の対象に合わせる。
-
-```sql
-FROM Metric
-SELECT count(apm.service.transaction.duration) AS requests,
-       rate(count(apm.service.transaction.duration), 1 minute) AS rpm,
-       average(apm.service.transaction.duration) AS latencySeconds,
-       100 * count(apm.service.error.count)
-         / count(apm.service.transaction.duration) AS errorPercent
-WHERE appName = '<対象アプリ名>'
-  AND transactionType = 'Web'
-SINCE 1 hour ago
-TIMESERIES 5 minutes
-```
-
-`requests`は期間内の処理件数、`rpm`は1分あたりの処理件数、`latencySeconds`は秒単位、`errorPercent`は百分率。処理件数と毎分の処理件数を取り違えない。分母が0の区間や値がない区間を、正常な0%として補完しない。
-
-同じ対象と期間の複数指標は、FACETの選出や各指標の条件が変わらないなら1本にまとめる。時系列を比較するときは、各バケットの開始・終了時刻と値を照合する。
-
-Transactionイベントを使った集計とメトリクス集計は、同じアプリ名でも件数や平均値が一致するとは限らない。収集・サンプリング・エラーの扱い・境界時刻・利用可能な属性を照合し、元の目的に合うものを選ぶ。個別リクエストやカスタム属性が必要な調査はイベントを使う。
-
-`apm.service.transaction.overview`は処理時間の内訳を見るためのものなので、アプリの応答時間を知る目的で使っていないか確認する。内訳が必要な調査をdurationメトリクスだけへ置き換えない。
-
 ## サイト性能の初期診断を2本にまとめる
 
 ブラウザの表示指標とバックエンドの状態を知りたいときは、PageViewTimingの複数集計を1本、対象の収集元に合うバックエンドメトリクスの複数集計を1本にまとめる。異なるイベント型の結果を無理に1本へ混ぜず、それぞれの母集団を維持する。
@@ -72,7 +45,7 @@ WHERE (pageUrl = 'https://example.com/app'
 SINCE 1 hour ago
 ```
 
-対象URLと期間を置き換え、必要ならBrowserアプリも限定する。バックエンドは上のAPM例または[OTel例](opentelemetry.md)で対象サービスと期間を合わせる。Browserデータは独立に存在を確認し、OTelの導入だけでPageViewTimingが得られるとは仮定しない。最適化前後の比較では固定期間を使い、各指標のpercentile・単位・サンプル数まで照合する。ページ表示の指標とAPI応答時間は別の値として読む。
+対象URLと期間を置き換え、必要ならBrowserアプリも限定する。バックエンドは対象の計装に合うデータでサービスと期間を合わせる。Browserデータは独立に存在を確認する。最適化前後の比較では固定期間を使い、各指標のpercentile・単位・サンプル数まで照合する。ページ表示の指標とAPI応答時間は別の値として読む。
 
 少数サンプルのpercentileだけでサイト全体を良好と評価しない。INPがなければ欠測として残し、別の表示指標で代用しない。CLSは記録時点で値が異なるため、異なるtimingNameのスナップショットを混ぜてページ終了時の値と扱わない。
 
